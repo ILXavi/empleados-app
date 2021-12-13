@@ -34,10 +34,6 @@ class UsersController extends Controller
 
         if ($validator->fails()){
             
-            
-            //echo $errors->first('name');
-            //echo $errors->first('name','email','password','job','salary','biography');
-
             //respuestas de error
             // return response()->json();
             // throw new \Exception('Los datos ingresados no cumplen con los parametros de registro');
