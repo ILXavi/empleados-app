@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UsersController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +15,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
+
+Route::prefix('users')->group(function(){
+
+    Route::put('/registerUser',[UsersController::class,'registerUser']);
+    // Route::post('/desactivar/{id}',[UsuariosController::class,'desactivar']);
+    // Route::post('/editar/{id}',[UsuariosController::class,'editar']);
+    // Route::get('/listar',[UsuariosController::class,'listar']);
+    // Route::get('/ver/{id}',[UsuariosController::class,'ver']);
+    // Route::put('/comprar_curso/{usuario_id}/{curso_id}',[UsuariosController::class,'comprar_curso']);
+    // Route::get('/listar_comprados/{usuario_id}',[UsuariosController::class,'listar_comprados']);
+    
 });
