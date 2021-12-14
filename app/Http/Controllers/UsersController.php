@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\Facades\Hash;
 
 
 class UsersController extends Controller
@@ -33,7 +35,7 @@ class UsersController extends Controller
         ]);
 
         if ($validator->fails()){
-            
+          
             //respuestas de error
             // return response()->json();
             // throw new \Exception('Los datos ingresados no cumplen con los parametros de registro');
@@ -52,7 +54,7 @@ class UsersController extends Controller
 
             $user->name = $data->name;
             $user->email = $data->email;
-            $user->password = $data->password;
+            $user->password = Hash::make($data->password);
             $user->job = $data->job;
             $user->salary = $data->salary;
             $user->biography = $data->biography;
@@ -70,6 +72,49 @@ class UsersController extends Controller
 
 
         }
+
+    }
+
+
+    public function login(Request $req){
+
+        //Buscar el email
+        $email = $req->email;
+
+        //Validacion
+        
+        try{
+            if(User::where('email', '=', $datos->email)->first()){
+
+                $user = User::where('email',$email)->first();
+
+                if(Hash::check($req->password, $user->password)){
+                    //Los datos ingresados existen y son validos
+                    //Generamos el api_token
+                    do{
+                        $token = Hash::make($user->id.now());    
+                    }while(User::where('api_token', $token)->first());
+
+                    $user->api_token =$token;
+                    $user->save();
+                    $respuesta['msg'] = "El token del usuario con email ".$user->email. " es ".$user->api_token;
+
+                }else{
+                    //El usuario existe pero la contraseña es incorrecta
+                    $respuesta['msg'] = "Contraseña incorrecta, intentelo nuevamente";
+                }
+                
+            }else{
+                
+                $respuesta['msg'] = "Usuario no registrado";
+            }
+            
+        }catch(\Exception $e){
+            $respuesta['status'] = 0;
+            $respuesta['msg'] = "Se ha producido un error: ".$e->getMessage();
+        }
+
+        return response()->json($respuesta);
 
     }
 
