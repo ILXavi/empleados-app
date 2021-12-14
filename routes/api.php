@@ -31,10 +31,10 @@ use App\Http\Controllers\UsersController;
 //     Route::post('/login',[UsersController::class,'login']);
 // });
 
+Route::post('/login',[UsersController::class,'login']);
+Route::middleware(['apitoken','permission'])->prefix('users')->group(function(){
 
-Route::middleware(['permission', 'apitoken'])->prefix('users')->group(function(){
-
-    Route::post('/login',[UsersController::class,'login'])->withoutMiddleware('apitoken');
+    
     Route::put('/registerUser',[UsersController::class,'registerUser']);
     
 

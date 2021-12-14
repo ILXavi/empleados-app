@@ -16,18 +16,20 @@ class ApiToken
      * @param  \Closure  $next
      * @return mixed
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $req, Closure $next)
     {
         //Buscar al usuario
         $apitoken = $req->api_token;
+        //print($apitoken);
 
         $user = User::where('api_token',$apitoken)->first();
 
         if(!$user){
-            //Error
+            //Erro
+            die("token mal");
         }else{
-            $request->user = $user;
-            return $next($request);
+            $req->user = $user;
+            return $next($req);
         }
             
     }

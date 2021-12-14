@@ -78,13 +78,16 @@ class UsersController extends Controller
 
     public function login(Request $req){
 
+        $data = $req->getContent();
+        $data = json_decode($data);
+
         //Buscar el email
-        $email = $req->email;
+        $email = $data->email;
 
         //Validacion
         
         try{
-            if(User::where('email', '=', $datos->email)->first()){
+            if(User::where('email', '=', $data->email)->first()){
 
                 $user = User::where('email',$email)->first();
 
