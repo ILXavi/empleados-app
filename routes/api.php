@@ -31,14 +31,22 @@ use App\Http\Controllers\UsersController;
 //     Route::post('/login',[UsersController::class,'login']);
 // });
 
+Route::prefix('users')->group(function(){
+
+    Route::post('/recoverPassword',[UsersController::class,'recoverPassword']);
+    
+});
+
+
 Route::post('/login',[UsersController::class,'login']);
+
+
 Route::middleware(['apitoken','permission'])->prefix('users')->group(function(){
 
-    
     Route::put('/registerUser',[UsersController::class,'registerUser']);
+    Route::put('/listEmployees',[UsersController::class,'listEmployees']);
     
-
-
+    
 });
 
 

@@ -22,7 +22,7 @@ class ValidateUserPermission
             if($req->user->job =='Direccion' || $req->user->job =='RRHH'){
                 return $next($req);
             }else{
-                $respuesta['msg'] = "No cuenta con permisos para realizar esta accion";   
+                $respuesta['msg'] = "No cuenta con permisos para ejecutar esta funcion";   
             }
             return response()->json($respuesta);
 

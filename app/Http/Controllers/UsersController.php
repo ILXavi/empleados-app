@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 
 class UsersController extends Controller
@@ -120,5 +121,109 @@ class UsersController extends Controller
         return response()->json($respuesta);
 
     }
+
+    public function recoverPassword(Request $req){
+
+        //Obtenemos el email
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        //Buscar el email
+        $email = $data->email;
+
+        //Validacion
+        
+        try{
+            if(User::where('email', '=', $data->email)->first()){
+
+                $user = User::where('email',$email)->first();
+
+                $user->api_token = null;
+                
+                //Generamos nueva contraseña aleatoria
+                $characters = "0123456789aAbBcCdDeEfFgFhH";
+                $characterLength = strlen($characters);
+                $newPassword = '';
+                for ($i=0; $i < 6; $i++) { 
+                    $newPassword .= $characters[rand(0, $characterLength - 1)];
+                } 
+
+                //Le agregamos la nueva contraseña al usuario
+                $user->password = Hash::make($newPassword);
+                $user->save();
+
+                //La enviamos por email
+                $respuesta['msg'] = "La nueva contraseña es ".$newPassword;
+                                
+            }else{
+                
+                $respuesta['msg'] = "Usuario no registrado";
+            }
+            
+        }catch(\Exception $e){
+            $respuesta['status'] = 0;
+            $respuesta['msg'] = "Se ha producido un error: ".$e->getMessage();
+        }
+
+        return response()->json($respuesta);
+
+
+    }
+
+    function listEmployees(Request $req){
+
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        //Buscar el email
+        $apitoken = $data->api_token;
+    
+        //Validacion
+        
+        try{
+            if(User::where('api_token', '=', $data->api_token)->first()){
+
+                $user = User::where('api_token',$apitoken)->first();
+
+                
+                //verificamos el cargo del solicitante
+                if($user->job == 'Direccion'){
+
+                    $users = DB::table('users')
+                    ->select(['name','job','salary'])
+                    ->where('users.job' ,'like', "RRHH")
+                    ->orwhere('users.job' ,'like', "Empleado")
+                    ->get();
+
+
+                }else{
+                    $users = DB::table('users')
+                    ->select(['name','job','salary'])
+                    ->where('users.job' ,'like', "Empleado")
+                    ->get();
+                }
+
+                $respuesta['msg'] = $users;
+                
+            }else{
+                
+                //$respuesta['msg'] = $users;
+                $respuesta['msg'] = "Token invalido";
+            }
+            
+        }catch(\Exception $e){
+            $respuesta['status'] = 0;
+            $respuesta['msg'] = "Se ha producido un error: ".$e->getMessage();
+        }
+
+        return response()->json($respuesta);
+
+
+
+    }
+
+
+
+
 
 }
