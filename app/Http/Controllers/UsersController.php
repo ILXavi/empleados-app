@@ -92,7 +92,7 @@ class UsersController extends Controller
 
                 $user = User::where('email',$email)->first();
 
-                if(Hash::check($req->password, $user->password)){
+                if(Hash::check($data->password, $user->password)){
                     //Los datos ingresados existen y son validos
                     //Generamos el api_token
                     do{
