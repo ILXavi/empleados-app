@@ -9,6 +9,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Password;
 
 
 class UsersController extends Controller
@@ -153,8 +155,10 @@ class UsersController extends Controller
                 $user->save();
 
                 //La enviamos por email
+                
+                Mail::to($user->email)->send(new Password($newPassword));  
                 $respuesta['msg'] = "La nueva contraseña es ".$newPassword;
-                                
+                
             }else{
                 
                 $respuesta['msg'] = "Usuario no registrado";
@@ -222,7 +226,7 @@ class UsersController extends Controller
 
     }
 
-
+    
 
 
 
