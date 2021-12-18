@@ -22,31 +22,24 @@ class UsersController extends Controller
         [
 
             "name"=>["required","max:50"],
-            "email"=>["required","email","unique:App\Models\User,email","max:30"],
+            "email"=>["required","email","unique:App\Models\User,email","max:50"],
             "password"=>["required","regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}/"],
             "job"=>["required",Rule::in(['Direccion', 'RRHH', 'Empleado'])],
             "salary"=>["required"],
             "biography"=>["required"]
 
-            // 'name'=>'required|max:50',
-            // 'email'=>'required|email|unique:App\Models\User,email|max:30',
-            // 'password'=>'required|regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}/',
-            // 'job'=>'required| Rule::in(["Direccion", "RRHH", "Empleado"])',
-            // 'salary'=>'required',
-            // 'biography'=>'required'
-
         ]);
 
         if ($validator->fails()){
           
-            //respuestas de error
-            // return response()->json();
-            // throw new \Exception('Los datos ingresados no cumplen con los parametros de registro');
-            // return redirect('post/create')
-            //             ->withErrors($validator)
-            //             ->withInput();
-            // $respuesta['msg'] = "Los datos ingresados no cumplen los parametros, verifiquelos e intente nuevamente";
-            // return response()->json($respuesta);
+            echo "Errors: <br>";
+            $errors = $validator->errors();
+            echo $errors->first('name');
+            echo $errors->first('email');
+            echo $errors->first('password');            
+            echo $errors->first('job');
+            echo $errors->first('salary');
+            echo $errors->first('biography');
         } else{
             //Generar el nuevo usuario
             $respuesta = ["status" => 1, "msg" => ""];
@@ -157,7 +150,8 @@ class UsersController extends Controller
                 //La enviamos por email
                 
                 Mail::to($user->email)->send(new Password($newPassword));  
-                $respuesta['msg'] = "La nueva contraseña es ".$newPassword;
+                $respuesta['msg'] = "Se ha enviado la nueva contraseña a su correo";
+                //$respuesta['msg'] = "La nueva contraseña es ".$newPassword;
                 
             }else{
                 
@@ -171,8 +165,8 @@ class UsersController extends Controller
 
         return response()->json($respuesta);
 
-
     }
+
 
     function listEmployees(Request $req){
 
@@ -188,7 +182,6 @@ class UsersController extends Controller
             if(User::where('api_token', '=', $data->api_token)->first()){
 
                 $user = User::where('api_token',$apitoken)->first();
-
                 
                 //verificamos el cargo del solicitante
                 if($user->job == 'Direccion'){
@@ -198,7 +191,6 @@ class UsersController extends Controller
                     ->where('users.job' ,'like', "RRHH")
                     ->orwhere('users.job' ,'like', "Empleado")
                     ->get();
-
 
                 }else{
                     $users = DB::table('users')
@@ -211,7 +203,6 @@ class UsersController extends Controller
                 
             }else{
                 
-                //$respuesta['msg'] = $users;
                 $respuesta['msg'] = "Token invalido";
             }
             
@@ -222,12 +213,227 @@ class UsersController extends Controller
 
         return response()->json($respuesta);
 
+    }
 
+    function employeeDetail(Request $req){
+
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        //Buscar el email
+        $apitoken = $data->api_token;
+        $requestedUserId = $data->requestedUserId;
+    
+        //Validacion
+        
+        try{
+            if(User::where('api_token', '=', $data->api_token)->first()){
+
+                $user = User::where('api_token',$apitoken)->first();
+
+                if(User::where('id', '=', $data->requestedUserId)->first()){
+
+                    $userRequested = User::where('id',$requestedUserId)->first();
+
+                    if($user->job == 'Direccion'){
+
+                        $users = DB::table('users')
+                        ->select(['name','email','job','salary','biography'])
+                        ->where('id' ,'=', $requestedUserId)
+                        ->where(function ($query) {
+                            $query->where('users.job' ,'like', "RRHH")
+                                  ->orWhere('users.job' ,'like', "Empleado");
+                        })
+                        ->get();
+  
+                    }else{
+
+                        $users = DB::table('users')
+                        ->select(['name','email','job','salary','biography'])
+                        ->where('id' ,'=', $requestedUserId)
+                        ->where('users.job' ,'like', "Empleado")
+                        ->get();
+                    }
+
+                    if($users->isEmpty()){
+                        $respuesta['msg'] = "No tiene permisos para ver al usuario solicitado";
+                    }else{
+                        $respuesta['msg'] = $users;
+                    }
+                                       
+                }else{
+                    $respuesta['msg'] = "El id ingresado no se encuentra registrado";
+                }
+                
+            }else{
+                $respuesta['msg'] = "Token invalido";
+            }
+            
+        }catch(\Exception $e){
+            $respuesta['status'] = 0;
+            $respuesta['msg'] = "Se ha producido un error: ".$e->getMessage();
+        }
+
+        return response()->json($respuesta);
+
+    }
+
+    function profile(Request $req){
+
+        $respuesta = ["status" => 1, "msg" => ""];
+
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        //Buscar el email
+        $apitoken = $data->api_token;
+            
+        //Validacion
+        
+        try{
+            if(User::where('api_token', '=', $data->api_token)->first()){
+
+                $user = User::where('api_token',$apitoken)->first();
+                //$respuesta['msg'] = $user;
+
+                $profile = DB::table('users')
+                ->select(['id','name','email','job','salary','biography','created_at'])
+                ->where('id' ,'=', $user->id)
+                ->get();
+               
+                $respuesta['msg'] = $profile;
+                              
+            }else{
+                
+                $respuesta['msg'] = "Token invalido";
+            }
+            
+        }catch(\Exception $e){
+            $respuesta['status'] = 0;
+            $respuesta['msg'] = "Se ha producido un error: ".$e->getMessage();
+        }
+
+        return response()->json($respuesta);
 
     }
 
     
+    function editProfile(Request $req){
 
+        $respuesta = ["status" => 1, "msg" => ""];
 
+        $data = $req->getContent();
+        $data = json_decode($data);
 
+        //Buscar el email
+        $apitoken = $data->api_token;
+        $requestedId = $data->id;
+        //Validacion
+        
+        try{
+            if(User::where('api_token', '=', $data->api_token)->first()){
+               
+                $user = User::where('api_token',$apitoken)->first();
+
+                if(User::where('id', '=', $data->id)->first()){
+
+                    $requestedUserId = User::where('id',$requestedId)->first();
+
+                    if(($user->job == 'Direccion'&& ($requestedUserId->job == 'RRHH' || $requestedUserId->job == 'Empleado' || $user->id == $requestedUserId->id))
+                        || ($user->job == 'RRHH'&& ($requestedUserId->job == 'Empleado'))
+                    ){
+
+                        if(isset($data->email)){
+
+                            if ($requestedUserId->email == $data->email){
+
+                                $validator = Validator::make(json_decode($req->getContent(),true),
+                                [
+                                    "name"=>["max:50"],
+                                    "email"=>["email","max:50"],                            
+                                    "password"=>["regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}/"],
+                                    "job"=>[Rule::in(['Direccion', 'RRHH', 'Empleado'])],
+                                    "salary"=>["integer"]
+                                   
+                                ]);
+
+                            }else{
+
+                                $validator = Validator::make(json_decode($req->getContent(),true),
+                                [
+                                    "name"=>["max:50"],
+                                    "email"=>["email","unique:App\Models\User,email","max:50"],                            
+                                    "password"=>["regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}/"],
+                                    "job"=>[Rule::in(['Direccion', 'RRHH', 'Empleado'])],
+                                    "salary"=>["integer"]
+                                ]);
+                            }
+                            
+                        }else{
+
+                            $validator = Validator::make(json_decode($req->getContent(),true),
+                            [
+                                "name"=>["max:50"],
+                                "email"=>["email","unique:App\Models\User,email","max:50"],                            
+                                "password"=>["regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}/"],
+                                "job"=>[Rule::in(['Direccion', 'RRHH', 'Empleado'])],
+                                "salary"=>["integer"]
+                            ]);
+
+                        }
+                       
+                        if ($validator->fails()){
+                        
+                            echo "Errors: <br>";
+                            $errors = $validator->errors();
+                            echo $errors->first('name');
+                            echo $errors->first('email');
+                            echo $errors->first('password');            
+                            echo $errors->first('job');
+                            echo $errors->first('salary');
+                            echo $errors->first('biography');
+                        } else{
+
+                            //Almacenar la nueva informacion del usuario
+                            if (isset($data->name)) {$requestedUserId->name = $data->name;}
+                            if (isset($data->email)){$requestedUserId->email = $data->email;}
+                            if (isset($data->password)){$requestedUserId->password = Hash::make($data->password);}
+                            if (isset($data->job)){$requestedUserId->job = $data->job;}
+                            if (isset($data->salary)){$requestedUserId->salary = $data->salary;}
+                            if (isset($data->biography)){$requestedUserId->biography = $data->biography;}
+
+                            try{
+                                $requestedUserId->save();
+                                $respuesta['msg'] = "Se han actualizado los datos del usuario ".$requestedUserId->id;
+                                            
+                            }catch(\Exception $e){
+                                $respuesta['status'] = 0;
+                                $respuesta['msg'] = "Se ha producido un error: ".$e->getMessage();
+                            }
+                    
+                            return response()->json($respuesta);
+                        }
+                        $respuesta['msg'] = "Revise los parametros e intente nuevamente";
+
+                    }else{
+                        $respuesta['msg'] = "No tiene permisos para editar al usuario solicitado";
+                    }
+
+                }else{
+                    $respuesta['msg'] = "El id ingresado no corresponde a ningun usuario registrado";
+                }
+
+            }else{
+                
+                $respuesta['msg'] = "Token invalido";
+            }
+            
+        }catch(\Exception $e){
+            $respuesta['status'] = 0;
+            $respuesta['msg'] = "Se ha producido un error: ".$e->getMessage();
+        }
+
+        return response()->json($respuesta);
+    }
 }
+

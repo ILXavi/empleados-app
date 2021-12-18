@@ -19,7 +19,7 @@ class CreateUsersTable extends Migration
             $table->string('email')->unique();
             //$table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('job', ['Direccion', 'RRHH', 'Empleado']);//->default('Empleado')
+            $table->enum('job', ['Direccion', 'RRHH', 'Empleado']);
             $table->integer('salary');
             $table->text('biography');
             //$table->rememberToken();
@@ -38,3 +38,4 @@ class CreateUsersTable extends Migration
         Schema::dropIfExists('users');
     }
 }
+

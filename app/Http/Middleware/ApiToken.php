@@ -19,18 +19,22 @@ class ApiToken
     public function handle(Request $req, Closure $next)
     {
         //Buscar al usuario
-        $apitoken = $req->api_token;
-        //print($apitoken);
-
-        $user = User::where('api_token',$apitoken)->first();
-
-        if(!$user){
-            //Erro
-            die("token mal");
-        }else{
-            $req->user = $user;
-            return $next($req);
-        }
+        if(isset($req->api_token)){
+            $apitoken = $req->api_token;
+            if($user = User::where('api_token',$apitoken)->first()){
+                $user = User::where('api_token',$apitoken)->first();
+                $respuesta["msg"] = "Api token valido";
+                $req->user = $user;
+                return $next($req);
+            }else{
+                $respuesta["msg"] = "Token invalido";
+            }
             
+        }else{
+            $respuesta["status"] = 0;
+            $respuesta["msg"] = "Token no ingresado";
+        }
+        
+        return response()->json($respuesta);     
     }
 }

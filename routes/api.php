@@ -15,22 +15,6 @@ use App\Http\Controllers\UsersController;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
-// Route::prefix('users')->group(function(){
-
-//     Route::put('/registerUser',[UsersController::class,'registerUser']);
-//     Route::post('/desactivar/{id}',[UsuariosController::class,'desactivar']);
-//     Route::post('/editar/{id}',[UsuariosController::class,'editar']);
-//     Route::get('/listar',[UsuariosController::class,'listar']);
-//     Route::get('/ver/{id}',[UsuariosController::class,'ver']);
-//     Route::put('/comprar_curso/{usuario_id}/{curso_id}',[UsuariosController::class,'comprar_curso']);
-//     Route::get('/listar_comprados/{usuario_id}',[UsuariosController::class,'listar_comprados']);
-//     Route::post('/login',[UsersController::class,'login']);
-// });
-
 Route::prefix('users')->group(function(){
 
     Route::post('/recoverPassword',[UsersController::class,'recoverPassword']);
@@ -45,9 +29,8 @@ Route::middleware(['apitoken','permission'])->prefix('users')->group(function(){
 
     Route::put('/registerUser',[UsersController::class,'registerUser']);
     Route::put('/listEmployees',[UsersController::class,'listEmployees']);
-    
-    
+    Route::post('/employeeDetail',[UsersController::class,'employeeDetail']);
+    Route::post('/profile',[UsersController::class,'profile'])->withoutMiddleware('permission');
+    Route::put('/editProfile',[UsersController::class,'editProfile']);
+        
 });
-
-
-//Route::middleware('apitoken')->get('/protegido',....)
