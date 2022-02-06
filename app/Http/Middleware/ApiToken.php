@@ -20,9 +20,9 @@ class ApiToken
     {
         //Buscar al usuario
         if(isset($req->api_token)){
-            $apitoken = $req->api_token;
-            if($user = User::where('api_token',$apitoken)->first()){
-                $user = User::where('api_token',$apitoken)->first();
+            //$apitoken = $req->api_token;
+            $user = User::where('api_token',$req->api_token)->first();
+            if($user){
                 $respuesta["msg"] = "Api token valido";
                 $req->user = $user;
                 return $next($req);

@@ -27,7 +27,5 @@ class ValidateUserPermission
             $respuesta['msg'] = "No cuenta con permisos para ejecutar esta funcion";   
         }
         return response()->json($respuesta);
-
-                   
     }
 }
